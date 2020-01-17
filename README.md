@@ -33,8 +33,9 @@ First download and install all required dependencies:
   * Make sure you check the "Add Python to Path" box in the installer
   * Post-install, open an administrative command prompt and run `pip3 install matplotlib`
 * Git: <https://git-scm.com/downloads>
-  * I'd recomment choosing a different editor during the install process unless you're already familiar with vim.
-* Visual Studio
+  * I'd recommend choosing a different editor during the install process unless you're already familiar with vim.
+* Visual Studio: <https://visualstudio.microsoft.com/>
+  * Select Visual Studio Community 2019 from the drop-down list.
   
 Next open the command prompt and navigate to where you want the code to download. Then run:
 ```
