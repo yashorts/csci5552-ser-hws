@@ -54,3 +54,32 @@ Finally, open CMake (cmake-gui).
   * Click on the "..." that appears to the right.
   * Browse to where you downloaded and extracted the Eigen headers and select that directory.
 * Click "Generate", then "Open Project"
+
+### Mac (OS X)
+First download and install all initial dependencies:
+* Xcode: Install from App Store
+* Homebrew: <https://brew.sh>
+  * `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+Next install more dependencies using brew:
+* CMake: Run `brew install cmake`
+* Eigen3: Run `brew install eigen`
+* Python 3: Run `brew install python`
+  * After run `pip3 install matplotlib` to get the Python plotting code.
+  
+Next clone this repository into a local directory, and ensure you have the latest version:
+```
+git clone https://github.umn.edu/davi1510/CSci5552Spring2020.git
+cd CSci5552Spring2020
+git pull
+```
+
+Finally, create a build directory, run cmake, and build:
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+Executables and libraries will appear in directories matching their location in the source tree.  In example, the homework 0 test executable will appear at `build/src/homework/hw0/hw0_test`.
