@@ -5,7 +5,7 @@ After each assignment is due, it will be updated to include instructor solutions
 ### Linux
 First install all required dependencies.  This repository requires Eigen3, CMake, and Python 3 (including the Matplotlib package).  On Ubuntu install with:
 ```
-sudo apt-get install cmake libeigen3-dev python3-matplotlib
+sudo apt-get install git cmake libeigen3-dev python3-dev python3-matplotlib
 ```
 
 Next clone this repository into a local directory, and ensure you have the latest version:
