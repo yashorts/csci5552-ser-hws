@@ -29,7 +29,8 @@ Executables and libraries will appear in directories matching their location in 
 First download and install all required dependencies:
 * Eigen 3: <http://eigen.tuxfamily.org>
   * Eigen 3 is a header only library, and does not need to be installed, just downloaded.  Extract the headers somewhere convenient.
-* Python 3: <https://www.python.org/downloads/>
+* Python 3: <https://www.python.org/downloads/release/python-381/>
+  * Install the 64 bit version, (i.e. download the "Windows x86-64 executable installer")
   * Make sure you check the "Add Python to Path" box in the installer
   * Post-install, open an administrative command prompt and run `pip3 install matplotlib`
 * Git: <https://git-scm.com/downloads>
