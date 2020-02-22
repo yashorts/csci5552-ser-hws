@@ -20,8 +20,8 @@ LinearMLESolve(vector<double> d_Lis, // vector of distance projected onto each l
         VectorXd H_i_T = G_p_Lis[i].normalized();
         double sigma_i = sigmas[i];
         double d_Li = d_Lis[i];
-        Matrix<double, 2, 2> Ai = H_i_T * sigma_i * H_i_T.transpose();
-        Matrix<double, 2, 1> bi = H_i_T * sigma_i * d_Li;
+        Matrix<double, 2, 2> Ai = H_i_T * (1 / sigma_i) * H_i_T.transpose();
+        Matrix<double, 2, 1> bi = H_i_T * (1 / sigma_i) * d_Li;
         A += Ai;
         b += bi;
     }
