@@ -20,8 +20,8 @@ LinearMLESolve(vector<double> d_Lis, // vector of distance projected onto each l
         VectorXd H_i_T = G_p_Lis[i].normalized();
         double sigma_i = sigmas[i];
         double d_Li = d_Lis[i];
-        Matrix<double, 2, 2> Ai = H_i_T * (1 / sigma_i) * H_i_T.transpose();
-        Matrix<double, 2, 1> bi = H_i_T * (1 / sigma_i) * d_Li;
+        Matrix<double, 2, 2> Ai = H_i_T * (1 / (sigma_i * sigma_i)) * H_i_T.transpose();
+        Matrix<double, 2, 1> bi = H_i_T * (1 / (sigma_i * sigma_i)) * d_Li;
         A += Ai;
         b += bi;
     }
@@ -54,14 +54,13 @@ NonLinearLSSolve(vector<double> dists, // vector of distance to each landmark
         A << 0, 0, 0, 0;
         Matrix<double, 2, 1> b;
         b << 0, 0;
-        // fixme: is alpha and n_iter tuned ?
         for (int i = 0; i < G_p_Lis.size(); ++i) {
             double h_i_currentGuess = euclideanDistance(currentGuess, G_p_Lis[i]);
             VectorXd H_i_T = (currentGuess - G_p_Lis[i]) * (1 / h_i_currentGuess);
             double sigma_i = sigmas[i];
             double r_i = dists[i] - h_i_currentGuess;
-            Matrix<double, 2, 2> Ai = H_i_T * (1 / sigma_i) * H_i_T.transpose();
-            Matrix<double, 2, 1> bi = H_i_T * (1 / sigma_i) * r_i; // fixme: no sigma here ?
+            Matrix<double, 2, 2> Ai = H_i_T * (1 / (sigma_i * sigma_i)) * H_i_T.transpose();
+            Matrix<double, 2, 1> bi = H_i_T * (1 / (sigma_i * sigma_i)) * r_i;
             A += Ai;
             b += bi;
         }
