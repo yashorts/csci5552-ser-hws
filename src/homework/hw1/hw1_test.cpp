@@ -32,7 +32,7 @@ int main() {
 
   // Compute Estimates:
   Eigen::Vector2d G_p_R_MLE = LinearMLESolve(proj_dists, sigmas, G_p_Li);
-  Eigen::Vector2d G_p_R_NLLS = NonLinearLSSolve(dists, sigmas, G_p_Li, Eigen::VectorXd::Zero(2), 0.01, 1000);
+  Eigen::Vector2d G_p_R_NLLS = NonLinearLSSolve(dists, sigmas, G_p_Li, Eigen::VectorXd::Zero(2), 0.01, 10000);
 
   // Write Errors and Plot:
   std::cout << "MLE Error: " << (G_p_R_MLE - G_p_R).norm() << std::endl;
