@@ -1,5 +1,7 @@
 #pragma once
 
+#define _USE_MATH_DEFINES // For Windows: Gives M_PI, etc.
+
 #include <robot_simulation/line_segment.h>
 #include <Eigen/Core>
 #include <string>
