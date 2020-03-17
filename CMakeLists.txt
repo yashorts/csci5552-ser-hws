@@ -23,5 +23,7 @@ elseif (UNIX)
 endif()
 include_directories( SYSTEM ${EIGEN3_INCLUDE_DIR} )
 
+find_package( Threads REQUIRED )
+
 include_directories( src )
 add_subdirectory( src )
