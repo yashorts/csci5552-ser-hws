@@ -6,7 +6,7 @@
 int Gnuplot::tmpfile_num = 0;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
-std::string Gnuplot::m_sGNUPlotFileName = "pgnuplot.exe";
+std::string Gnuplot::m_sGNUPlotFileName = "gnuplot.exe";
 std::string Gnuplot::m_sGNUPlotPath = "C:/program files/gnuplot/bin/";
 #elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
 std::string Gnuplot::m_sGNUPlotFileName = "gnuplot";
@@ -1047,8 +1047,8 @@ void Gnuplot::init()
     //
     // open pipe
     //
-    std::string tmp = Gnuplot::m_sGNUPlotPath + "/" + 
-        Gnuplot::m_sGNUPlotFileName;
+    std::string tmp = "\""+Gnuplot::m_sGNUPlotPath + "/" + 
+        Gnuplot::m_sGNUPlotFileName+"\"";
 
     // FILE *popen(const char *command, const char *mode);
     // The popen() function shall execute the command specified by the string 

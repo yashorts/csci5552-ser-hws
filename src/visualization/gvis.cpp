@@ -64,7 +64,7 @@ void GVisualizer::ClearFigure(size_t fig_id) {
 }
 
 void GVisualizer::DrawFigure(size_t fig_id) {
-  plots[fig_id].cmd("plot 0 with points pc rgb \"white\" ");
+  plots[fig_id].cmd("plot -1000 with line lc rgb \"white\" ");
 }
 
 GVisualizer::~GVisualizer() {

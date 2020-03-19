@@ -42,7 +42,7 @@ int main() {
     Eigen::Vector2d base = poses.back().head<2>() - 0.5 * sim.robot_radius * Eigen::Vector2d(std::cos(poses.back()[2]), std::sin(poses.back()[2]));
     line.push_back(base);
     for (size_t i = 0; i < sim.n_lasers; ++i) {
-      if (scan.scan[i] == sim.laser_dist_overdist_val) {
+      if (scan.scan.size() == 0 || scan.scan[i] == sim.laser_dist_overdist_val) {
         continue;
       }
       double perc = static_cast<double>(i) / (static_cast<double>(sim.n_lasers) - 1.0);
