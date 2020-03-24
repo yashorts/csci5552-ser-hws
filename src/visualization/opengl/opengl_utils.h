@@ -1,5 +1,5 @@
 #pragma once
-
+#define GLEW_STATIC
 #include <GL/glew.h>   //Include order can matter here
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>

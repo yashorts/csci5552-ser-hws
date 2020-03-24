@@ -1,7 +1,7 @@
 #include <robot_simulation/simulator.h>
 #include <visualization/opengl/glvis.h>
 
-int main() {
+int main(int argc, char** argv) {
   std::string scene_name = "vancouver.scn";
 
   Simulator sim(scene_name);
