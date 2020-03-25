@@ -1,58 +1,69 @@
 #include <visualization/opengl/opengl_utils.h>
 
-SDL_GLContext context;
 std::vector<int> shaderprogs;
 GLuint vao;
 
 using namespace std;
 
+static void error_callback(int error, const char* description) {
+	std::cerr << "GLFW Error Code: " << error << " Error: " << description << std::endl;
+}
+
 float rand01() {
 	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 }
 
-SDL_Window* GL_SDL_init(const char* window_name) {
-	SDL_Init(SDL_INIT_VIDEO);  //Initialize Graphics (for OpenGL)
-    
-    //Ask SDL to get a recent version of OpenGL (3.2 or greater)
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+GLFWwindow* GL_GLFW_init(const char* window_name) {
+	glfwSetErrorCallback(error_callback);
+	if (!glfwInit()) {
+		exit(-1);
+	}
 
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	GLFWwindow* window = glfwCreateWindow(800, 600, window_name, NULL, NULL);
+	if (!window) {
+		glfwTerminate();
+		exit(-1);
+	}
 
-	SDL_GL_SetSwapInterval(1);
-	
-	//Create a window (offsetx, offsety, width, height, flags)
-	SDL_Window* window = SDL_CreateWindow(window_name, 100, 100, 800, 600, SDL_WINDOW_OPENGL);
-	
-	//SDL_SetRelativeMouseMode(SDL_TRUE);
-	
-	//Create a context to draw in
-	context = SDL_GL_CreateContext(window);
+	glfwMakeContextCurrent(window);
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cout << "Failed to gladLoadGLLoader" << std::endl;
+		glfwTerminate();
+		exit(-1);
+	}
+
+	glfwSwapInterval(1);
 	
 	glEnable(GL_MULTISAMPLE);
-	
-	//GLEW loads new OpenGL functions
-	glewExperimental = GL_TRUE; //Use the new way of testing which methods are supported
-	glewInit();
 	
 	//Build a Vertex Array Object. This stores the VBO and attribute mappings in one object
 	glGenVertexArrays(1, &vao); //Create a VAO
 	glBindVertexArray(vao); //Bind the above created VAO to the current context
+
+	// Hack to get drawing
+	{
+		int x, y;
+		glfwGetWindowPos(window, &x, &y);
+		glfwSetWindowPos(window, 100, 100);
+		glfwSetWindowPos(window, x, y);
+	}
 	
 	return window;
 }
 
-void GL_SDL_del() {
+void GL_GLFW_del() {
 	//Clean Up
 	for (unsigned int i = 0; i < shaderprogs.size(); i++) {
 		glDeleteProgram(shaderprogs[i]);
 	}
     glDeleteVertexArrays(1, &vao);
-	
-	SDL_GL_DeleteContext(context);
-	SDL_Quit();
+
+	glfwTerminate();
 }
 
 // Create a GLSL program object from vertex and fragment shader files

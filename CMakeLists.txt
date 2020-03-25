@@ -5,6 +5,16 @@ set( PROJECT_NAME "5552_Code" )
 
 ## Set our project name
 project( ${PROJECT_NAME} )
+
+# Build GLFW
+# Also disable building some of the extra things GLFW has (examples, tests, docs)
+set(GLFW_BUILD_EXAMPLES  OFF CACHE BOOL " " FORCE)
+set(GLFW_BUILD_TESTS     OFF CACHE BOOL " " FORCE)
+set(GLFW_BUILD_DOCS      OFF CACHE BOOL " " FORCE)
+
+# Now actually run cmake on the CMakeLists.txt file found inside of the GLFW directory
+add_subdirectory(ext/glfw)
+
 if(WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /W4")
 else()
@@ -16,33 +26,14 @@ endif()
 find_package( PythonLibs 3 REQUIRED )
 include_directories( SYSTEM ${PYTHON_INCLUDE_DIRS} )
 
-if (WIN32)
-	SET(EIGEN3_INCLUDE_DIR "" CACHE PATH "eigen3 include directory")
-elseif (UNIX)
-	find_package( Eigen3 REQUIRED )
-endif()
-include_directories( SYSTEM ${EIGEN3_INCLUDE_DIR} )
+include_directories( SYSTEM ext/eigen )
+include_directories( SYSTEM ext/glm )
+include_directories( SYSTEM ext/glad/include )
+include_directories( SYSTEM ext/glfw/include )
 
 find_package( Threads REQUIRED )
 
-if (WIN32)
-	find_package( OpenGL REQUIRED )
-	SET(GLM_DIR "" CACHE PATH "glm directory")
-	SET(GLEW_DIR "" CACHE PATH "GLEW directory")
-	SET(SDL2_DIR "" CACHE PATH "SDL2 directory")
-	#SET(GLM_LIBRARY "" CACHE FILEPATH "glm library")
-	
-	SET(GLEW_LIBRARY )
-	SET(SDL2_LIBRARY )
-	SET(SDL2main_LIBRARY )
-	message( ${GLEW_DIR}/include )
-	include_directories( SYSTEM ${GLM_DIR} "${GLEW_DIR}/include" "${SDL2_DIR}/include")
-elseif (UNIX)
-	find_package( OpenGL REQUIRED )
-	find_package( glm REQUIRED )
-	find_package( GLEW REQUIRED )
-	find_package( SDL2 REQUIRED )
-endif()
-
 include_directories( src )
+
+add_subdirectory( ext )
 add_subdirectory( src )

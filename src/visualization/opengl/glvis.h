@@ -71,7 +71,7 @@ private:
 
   void handleEvents();
   
-  void Draw(SDL_Window* window);
+  void Draw();
   void DrawBackground();
   static constexpr float bg_size = 0.2f;
   void DrawLines();
@@ -85,7 +85,7 @@ private:
   GLint shaderProgram;
   glm::mat4 proj,view;
 
-  SDL_Window* wind;
+  GLFWwindow* wind;
   int w, h; // window width and height in pixels
   float view_height = 10.0;
   float cen_x = 0.0f, cen_y = 0.0f;

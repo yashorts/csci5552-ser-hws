@@ -1,8 +1,6 @@
 #pragma once
-#define GLEW_STATIC
-#include <GL/glew.h>   //Include order can matter here
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #define PI 3.141592f
 
@@ -25,8 +23,8 @@
 
 const bool DEBUG_ON = true;
 
-SDL_Window* GL_SDL_init(const char* window_name);
-void GL_SDL_del();
+GLFWwindow* GL_GLFW_init(const char* window_name);
+void GL_GLFW_del();
 
 float rand01();
 
