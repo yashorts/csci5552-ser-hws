@@ -42,7 +42,6 @@ void GLVisualizer::DrawLoop() {
 
 	while (running) {
     auto t_iter_start = std::chrono::high_resolution_clock::now();
-    handleEvents();
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -55,6 +54,7 @@ void GLVisualizer::DrawLoop() {
 }
 
 void GLVisualizer::UpdateLines() {
+  handleEvents();
   temp_line_lock.lock();
   if (clear_temp) {
     temp_lines.clear();
@@ -198,6 +198,7 @@ void GLVisualizer::Draw() {
 void GLVisualizer::PauseFigure(double pause_time_s) {
   if (pause_time_s < 0) {
     while (running) {
+      handleEvents();
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
   } else {
