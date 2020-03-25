@@ -19,12 +19,14 @@ void GLVisualizer::handleEvents() {
 }
 
 GLVisualizer::GLVisualizer() {
+  wind = GL_GLFW_init("GLVis");
+  glfwMakeContextCurrent(nullptr);
   // Fork off the drawing loop
   drawing_thread = std::thread(&GLVisualizer::DrawLoop, this);
 }
 
 void GLVisualizer::DrawLoop() {
-  wind = GL_GLFW_init("GLVis");
+  glfwMakeContextCurrent(wind);
   glEnable(GL_DEPTH_TEST);
   
   line_buffer = new float[MAX_LINE_SEGMENTS * SEG_SIZE];
@@ -50,13 +52,6 @@ void GLVisualizer::DrawLoop() {
     // Try to run at 100 fps
     std::this_thread::sleep_until(std::chrono::milliseconds(10) + t_iter_start);
   }
-
-  // Do cleanup
-  delete[] line_buffer;
-  glDeleteBuffers(1, vbo);
-
-	glfwDestroyWindow(wind);
-	glfwTerminate();
 }
 
 void GLVisualizer::UpdateLines() {
@@ -215,6 +210,13 @@ GLVisualizer::~GLVisualizer() {
   if (drawing_thread.joinable()) {
     drawing_thread.join();
   }
+
+  // Do cleanup
+  delete[] line_buffer;
+  glDeleteBuffers(1, vbo);
+
+	glfwDestroyWindow(wind);
+	glfwTerminate();
 }
 
 void GLVisualizer::setActiveProgram(GLint program) {
