@@ -1,5 +1,6 @@
 #include <visualization/opengl/glvis.h>
 
+#include <Eigen/Dense>
 #include <chrono>
 
 void GLVisualizer::handleEvents() {
@@ -81,6 +82,31 @@ void GLVisualizer::AddTempLine(std::vector<Eigen::VectorXd> line, Color c, doubl
   l.c = c;
   l.width = pix_width;
   new_temp_lines.push_back(l);
+}
+
+void GLVisualizer::AddTempEllipse(Eigen::Vector2d x, Eigen::Matrix2d Sig, Color c, double pix_width) {
+  std::vector<Eigen::VectorXd> ell_line(20,Eigen::Vector2d::Zero());
+
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> eigensolver(Sig);
+
+  Eigen::Vector2d e_val = eigensolver.eigenvalues();
+  Eigen::Matrix2d e_vec = eigensolver.eigenvectors();
+
+  double ellipse_orientation = std::atan2(e_vec.col(0)[1], e_vec.col(0)[0]);
+  Eigen::Matrix2d Rot;
+  Rot << std::cos(ellipse_orientation), -std::sin(ellipse_orientation), std::sin(ellipse_orientation), std::cos(ellipse_orientation);
+
+  for (size_t i = 0; i < 20; ++i) {
+    // n_pts-1 so that the first and last points are the same (completing the
+    // circle)
+    double theta = 6.28318530718 * i / (19);
+
+    // Scale by major / minor axis, then rotate and offset
+    ell_line[i] = Eigen::Vector2d(2.0 * std::sqrt(5.991 * e_val[0]) * std::cos(theta), 2.0 * std::sqrt(5.991 * e_val[1]) * std::sin(theta));
+    ell_line[i] = Rot * ell_line[i] + x;
+  }
+
+  AddTempLine(ell_line, c, pix_width);
 }
 
 void GLVisualizer::ClearTempLines() {

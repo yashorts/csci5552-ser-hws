@@ -39,6 +39,7 @@ class GLVisualizer {
 public:
   GLVisualizer();
   void AddTempLine(std::vector<Eigen::VectorXd> line, Color c, double pix_width);
+  void AddTempEllipse(Eigen::Vector2d x, Eigen::Matrix2d Sig, Color c, double pix_width);
   void ClearTempLines();
   void AddPermLine(std::vector<Eigen::VectorXd> line, Color c, double pix_width);
   void ClearPermLines();
