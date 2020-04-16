@@ -7,4 +7,4 @@ add_library( simulator ${SIM_SOURCE} ${SIM_HEADERS} )
 target_link_libraries( simulator ${CMAKE_THREAD_LIBS_INIT} )
 
 add_executable( test_sim test_simulator.cpp )
-target_link_libraries( test_sim simulator visualization )
+target_link_libraries( test_sim simulator gl_visualization )
