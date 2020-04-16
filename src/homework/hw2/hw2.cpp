@@ -1,6 +1,7 @@
 #include <homework/hw2/hw2.h>
 #include <iostream>
 #include <cmath>
+#include <Eigen/Dense>
 
 // Inputs:
 //   x_hat_t: the mean of the prior estimate of robot position
@@ -42,14 +43,49 @@ EKFPropagate(Eigen::VectorXd x_hat_t,
     Sigma_x_tpdt = A * Sigma_x_t * A.transpose() + N * Sigma_n * N.transpose();
 }
 
-void EKFRelPosUpdate(Eigen::VectorXd x_hat_t, Eigen::MatrixXd Sigma_x_t, Eigen::VectorXd z, Eigen::MatrixXd Sigma_m,
+// Inputs:
+//   x_hat_t: the mean of the prior estimate of robot position
+//   Sigma_x_t: the covariance of the prior estimate of robot position
+//   z: The relative position measurement
+//   Sigma_m: The covariance o fht emeasurement noise
+//   G_p_L: The knonw global position of the landmark
+// Outputs:
+//   x_hat_tpdt: mean of the new estimate of robot position
+//   Sigma_x_tpdt: covaraince of the new estimate of robot position
+void EKFRelPosUpdate(Eigen::VectorXd x_hat_t,
+                     Eigen::MatrixXd Sigma_x_t,
+                     Eigen::VectorXd z,
+                     Eigen::MatrixXd Sigma_m,
                      Eigen::VectorXd G_p_L,
-                     Eigen::VectorXd &x_hat_tpdt, Eigen::MatrixXd &Sigma_x_tpdt) {
-    // TODO
+                     Eigen::VectorXd &x_hat_tpdt,
+                     Eigen::MatrixXd &Sigma_x_tpdt) {
+    double x_R_t = x_hat_t[0];
+    double y_R_t = x_hat_t[1];
+    double theta_t = x_hat_t[2];
 
+    double x_L_t = G_p_L[0];
+    double y_L_t = G_p_L[1];
+
+    Eigen::Matrix<double, 2, 3> H;
+    H << -cos(theta_t), -sin(theta_t), -(x_L_t - x_R_t) * sin(theta_t) + (y_L_t - y_R_t) * cos(theta_t),
+            sin(theta_t), -cos(theta_t), -(x_L_t - x_R_t) * cos(theta_t) - (y_L_t - y_R_t) * sin(theta_t);
+    Eigen::Matrix<double, 2, 2> M;
+    M << 1, 0,
+            0, 1;
+    Eigen::Matrix<double, 2, 2> S = H * Sigma_x_t * H.transpose() + M * Sigma_m * M.transpose();
+    Eigen::Matrix<double, 3, 2> K = Sigma_x_t * H.transpose() * S.inverse();
+    Eigen::Matrix<double, 2, 2> C_G_theta_R;
+    C_G_theta_R << cos(theta_t), -sin(theta_t),
+            sin(theta_t), cos(theta_t);
+    Eigen::Matrix<double, 2, 1> G_p_R;
+    G_p_R << x_R_t,
+            y_R_t;
+    Eigen::Matrix<double, 2, 1> h_x_hat_0 = C_G_theta_R.transpose() * (G_p_L - G_p_R);
     // Note that these we passed by reference, so to return, just set them
     x_hat_tpdt = x_hat_t;
+    x_hat_tpdt += K * (z - h_x_hat_0);
     Sigma_x_tpdt = Sigma_x_t;
+    Sigma_x_tpdt -= Sigma_x_t * H.transpose() * S.inverse() * H * Sigma_x_t;
 }
 
 
