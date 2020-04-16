@@ -19,18 +19,27 @@ EKFPropagate(Eigen::VectorXd x_hat_t,
              double dt,
              Eigen::VectorXd &x_hat_tpdt,
              Eigen::MatrixXd &Sigma_x_tpdt) {
-    // TODO
     double x_t = x_hat_t[0];
     double y_t = x_hat_t[1];
     double theta_t = x_hat_t[2];
+
     double v = u[0];
     double w = u[1];
+
     // Note that these we passed by reference, so to return, just set them
     x_hat_tpdt = x_hat_t;
     x_hat_tpdt[0] += dt * v * cos(theta_t);
     x_hat_tpdt[1] += dt * v * sin(theta_t);
     x_hat_tpdt[2] += dt * w;
-    Sigma_x_tpdt = Sigma_x_t;
+    Eigen::Matrix<double, 3, 3> A;
+    A << 1, 0, -dt * v * sin(theta_t),
+            0, 1, dt * v * cos(theta_t),
+            0, 0, 1;
+    Eigen::Matrix<double, 3, 2> N;
+    N << dt * cos(theta_t), 0,
+            dt * sin(theta_t), 0,
+            0, dt;
+    Sigma_x_tpdt = A * Sigma_x_t * A.transpose() + N * Sigma_n * N.transpose();
 }
 
 void EKFRelPosUpdate(Eigen::VectorXd x_hat_t, Eigen::MatrixXd Sigma_x_t, Eigen::VectorXd z, Eigen::MatrixXd Sigma_m,
