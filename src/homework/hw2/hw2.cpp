@@ -81,11 +81,14 @@ void EKFRelPosUpdate(Eigen::VectorXd x_hat_t,
     G_p_R << x_R_t,
             y_R_t;
     Eigen::Matrix<double, 2, 1> h_x_hat_0 = C_G_theta_R.transpose() * (G_p_L - G_p_R);
+    Eigen::Matrix<double, 3, 3> I;
+    I << 1, 0, 0,
+            0, 1, 0,
+            0, 0, 1;
     // Note that these we passed by reference, so to return, just set them
     x_hat_tpdt = x_hat_t;
     x_hat_tpdt += K * (z - h_x_hat_0);
-    Sigma_x_tpdt = Sigma_x_t;
-    Sigma_x_tpdt -= Sigma_x_t * H.transpose() * S.inverse() * H * Sigma_x_t;
+    Sigma_x_tpdt = (I - K * H) * Sigma_x_t * (I - K * H).transpose() + K * M * Sigma_m * M.transpose() * K.transpose();
 }
 
 // Inputs:
