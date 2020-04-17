@@ -88,15 +88,55 @@ void EKFRelPosUpdate(Eigen::VectorXd x_hat_t,
     Sigma_x_tpdt -= Sigma_x_t * H.transpose() * S.inverse() * H * Sigma_x_t;
 }
 
-
-void EKFSLAMPropagate(Eigen::VectorXd x_hat_t, Eigen::MatrixXd Sigma_x_t, Eigen::VectorXd u, Eigen::MatrixXd Sigma_n,
+// Inputs:
+//   x_hat_t: the mean of the prior estimate of robot and landmark positions
+//   Sigma_x_t: the covariance of the prior estimate of robot and landmark positions
+//   u: the control taken (vector of linear and angular velocity)
+//   Sigma_n: covaraince of the dynamics noise
+//   dt: temporal length of the step to take
+// Outputs:
+//   x_hat_tpdt: mean of the new estimate of robot and lanmark positions at t+dt
+//   Sigma_x_tpdt: covaraince of the new estimate of robot and landmark positions at t+dt
+void EKFSLAMPropagate(Eigen::VectorXd x_hat_t,
+                      Eigen::MatrixXd Sigma_x_t,
+                      Eigen::VectorXd u,
+                      Eigen::MatrixXd Sigma_n,
                       double dt,
-                      Eigen::VectorXd &x_hat_tpdt, Eigen::MatrixXd &Sigma_x_tpdt) {
-    // TODO
+                      Eigen::VectorXd &x_hat_tpdt,
+                      Eigen::MatrixXd &Sigma_x_tpdt) {
+    double x_t = x_hat_t[0];
+    double y_t = x_hat_t[1];
+    double theta_t = x_hat_t[2];
+
+    double v = u[0];
+    double w = u[1];
 
     // Note that these we passed by reference, so to return, just set them
     x_hat_tpdt = x_hat_t;
+    x_hat_tpdt[0] += dt * v * cos(theta_t);
+    x_hat_tpdt[1] += dt * v * sin(theta_t);
+    x_hat_tpdt[2] += dt * w;
+
     Sigma_x_tpdt = Sigma_x_t;
+    Eigen::Matrix<double, 3, 3> A;
+    A << 1, 0, -dt * v * sin(theta_t),
+            0, 1, dt * v * cos(theta_t),
+            0, 0, 1;
+    Eigen::Matrix<double, 3, 2> N;
+    N << dt * cos(theta_t), 0,
+            dt * sin(theta_t), 0,
+            0, dt;
+    // Sigma_RR_new
+    Eigen::Matrix<double, 3, 3> Sigma_RR = Sigma_x_tpdt.block<3, 3>(0, 0);
+    Sigma_x_tpdt.block<3, 3>(0, 0) = A * Sigma_RR * A.transpose() + N * Sigma_n * N.transpose();
+    // Sigma_R_Li_new
+    for (long col = 3; col < Sigma_x_tpdt.cols(); col = col + 2) {
+        Sigma_x_tpdt.block<3, 2>(0, col) = A * Sigma_x_tpdt.block<3, 2>(0, col);
+    }
+    // Sigma_Li_R_new
+    for (long row = 3; row < Sigma_x_tpdt.rows(); row = row + 2) {
+        Sigma_x_tpdt.block<2, 3>(row, 0) = Sigma_x_tpdt.block<2, 3>(row, 0) * A.transpose();
+    }
 }
 
 void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t, Eigen::MatrixXd Sigma_x_t, std::vector<Eigen::VectorXd> zs,
