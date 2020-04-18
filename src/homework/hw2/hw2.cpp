@@ -3,8 +3,6 @@
 #include <cmath>
 #include <Eigen/Dense>
 
-using namespace std;
-
 // Inputs:
 //   x_hat_t: the mean of the prior estimate of robot position
 //   Sigma_x_t: the covariance of the prior estimate of robot position
@@ -140,6 +138,9 @@ void EKFSLAMPropagate(Eigen::VectorXd x_hat_t,
     }
 }
 
+using namespace std;
+using namespace Eigen;
+
 // Inputs:
 //   x_hat_t: the mean of the prior estimate of robot and landmark positions
 //   Sigma_x_t: the covariance of the prior estimate of robot and landmark positions
@@ -159,59 +160,54 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
     x_hat_tpdt = x_hat_t;
     Sigma_x_tpdt = Sigma_x_t;
 
-    Eigen::Matrix<double, 2, 2> M;
-    M << 1, 0,
-            0, 1;
-    double KNOWN_LANDMARK_THRESHOLD = 9;
-
-    assert(zs.size() == Sigma_ms.size());
+    double KNOWN_LANDMARK_THRESHOLD = 10;
 
     for (size_t i = 0; i < zs.size(); ++i) {
         // For each measurement
-        int no_landmarks = (x_hat_tpdt.size() - 3) / 2;
-        std::cout << no_landmarks << " landmarks" << std::endl;
-        Eigen::VectorXd z = zs[i];
-        Eigen::MatrixXd Sigma_m = Sigma_ms[i];
+        VectorXd z = zs[i];
+        MatrixXd Sigma_m = Sigma_ms[i];
 
         // Best match quantities
-        double min_distance = KNOWN_LANDMARK_THRESHOLD + 0.1;
-        Eigen::MatrixXd best_H;
-        Eigen::Matrix<double, 2, 1> best_h_x_hat_0;
-        Eigen::Matrix<double, 2, 2> best_S;
+        double min_distance = KNOWN_LANDMARK_THRESHOLD + 1;
+        MatrixXd best_H;
+        Matrix<double, 2, 1> best_h_x_hat_0;
+        Matrix<double, 2, 2> best_S;
 
         // For each landmark check the Mahalanobis distance
+        int no_landmarks = (x_hat_tpdt.size() - 3) / 2;
+        std::cout << no_landmarks << " landmarks" << std::endl;
         for (int j = 3; j < x_hat_tpdt.size(); j = j + 2) {
-            double x_L_t = x_hat_tpdt[j];
-            double y_L_t = x_hat_tpdt[j + 1];
-            Eigen::Matrix<double, 2, 1> G_p_L;
-            G_p_L << x_L_t,
-                    y_L_t;
-            double x_R_t = x_hat_tpdt[0];
-            double y_R_t = x_hat_tpdt[1];
-            double theta_t = x_hat_tpdt[2];
-            Eigen::Matrix<double, 2, 1> G_p_R;
+            double x_R_t = x_hat_tpdt(0, 0);
+            double y_R_t = x_hat_tpdt(1, 0);
+            double theta_t = x_hat_tpdt(2, 0);
+            Matrix<double, 2, 1> G_p_R;
             G_p_R << x_R_t,
                     y_R_t;
-            Eigen::Matrix<double, 2, 2> H_L_new;
+            Matrix<double, 2, 2> H_L_new;
             H_L_new << cos(theta_t), sin(theta_t),
                     -sin(theta_t), cos(theta_t);
+            double x_L_t = x_hat_tpdt(j, 0);
+            double y_L_t = x_hat_tpdt(j + 1, 0);
+            Matrix<double, 2, 1> G_p_L;
+            G_p_L << x_L_t,
+                    y_L_t;
 
-            Eigen::Matrix<double, 2, 3> H_R;
-            H_R << -cos(theta_t), -sin(theta_t), -(x_L_t - x_R_t) * sin(theta_t) + (y_L_t - y_R_t) * cos(theta_t),
-                    sin(theta_t), -cos(theta_t), -(x_L_t - x_R_t) * cos(theta_t) - (y_L_t - y_R_t) * sin(theta_t);
+            Matrix<double, 2, 3> H_R;
+            H_R << -cos(theta_t), -sin(theta_t), -sin(theta_t) * (x_L_t - x_R_t) + cos(theta_t) * (y_L_t - y_R_t),
+                    sin(theta_t), -cos(theta_t), -cos(theta_t) * (x_L_t - x_R_t) - sin(theta_t) * (y_L_t - y_R_t);
 
-            Eigen::MatrixXd H = Eigen::MatrixXd::Zero(2, x_hat_tpdt.size());
+            MatrixXd H = MatrixXd::Zero(2, x_hat_tpdt.size());
             H.block<2, 3>(0, 0) = H_R;
             H.block<2, 2>(0, j) = H_L_new;
 
-            Eigen::Matrix<double, 2, 2> S = H * Sigma_x_tpdt * H.transpose() + M * Sigma_m * M.transpose();
+            Matrix<double, 2, 2> S = H * Sigma_x_tpdt * H.transpose() + Sigma_m;
 
-            Eigen::Matrix<double, 2, 1> h_x_hat_0 = H_L_new * (G_p_L - G_p_R);
+            Matrix<double, 2, 1> h_x_hat_0 = H_L_new * (G_p_L - G_p_R);
 
-            double distance = abs((z - h_x_hat_0).transpose() * S.inverse() * (z - h_x_hat_0));
+            double distance = (z - h_x_hat_0).transpose() * S.inverse() * (z - h_x_hat_0);
+            cout << distance << " ";
 
             // Track the most likely landmark
-            // std::cout << distance << " ";
             if (distance < min_distance) {
                 min_distance = distance;
                 best_H = H;
@@ -219,57 +215,57 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
                 best_S = S;
             }
         }
-        // std::cout << std::endl;
+        cout << endl;
 
         // If looks like a landmark then do a regular update
         if (min_distance <= KNOWN_LANDMARK_THRESHOLD) {
-            Eigen::MatrixXd K = Sigma_x_tpdt * best_H.transpose() * best_S.inverse();
-            Eigen::MatrixXd I = Eigen::MatrixXd::Identity(x_hat_tpdt.size(), x_hat_tpdt.size());
+            MatrixXd K = Sigma_x_tpdt * best_H.transpose() * best_S.inverse();
+            MatrixXd I = MatrixXd::Identity(x_hat_tpdt.size(), x_hat_tpdt.size());
 
             // Note that these we passed by reference, so to return, just set them
             x_hat_tpdt = x_hat_tpdt + K * (z - best_h_x_hat_0);
             Sigma_x_tpdt = (I - K * best_H) * Sigma_x_tpdt * (I - K * best_H).transpose() +
-                           K * M * Sigma_m * M.transpose() * K.transpose();
+                           K * Sigma_m * K.transpose();
             continue;
         }
 
         // If looks like no landmark seen until now augment SLAM state with the landmark information
         if (min_distance > KNOWN_LANDMARK_THRESHOLD) {
-            double x_R_t = x_hat_tpdt[0];
-            double y_R_t = x_hat_tpdt[1];
-            double theta_t = x_hat_tpdt[2];
-            Eigen::Matrix<double, 2, 1> G_p_R;
+            double x_R_t = x_hat_tpdt(0, 0);
+            double y_R_t = x_hat_tpdt(1, 0);
+            double theta_t = x_hat_tpdt(2, 0);
+            Matrix<double, 2, 1> G_p_R;
             G_p_R << x_R_t,
                     y_R_t;
-            Eigen::Matrix<double, 2, 2> H_L_new;
+            Matrix<double, 2, 2> H_L_new;
             H_L_new << cos(theta_t), sin(theta_t),
                     -sin(theta_t), cos(theta_t);
 
             // Expected value
             // Copy previous state
-            Eigen::MatrixXd tmp_x_hat_tpdt = x_hat_tpdt;
-            x_hat_tpdt = Eigen::MatrixXd::Zero(x_hat_tpdt.size() + 2, 1);
+            MatrixXd tmp_x_hat_tpdt = x_hat_tpdt;
+            x_hat_tpdt = MatrixXd::Zero(x_hat_tpdt.size() + 2, 1);
             for (int t = 0; t < tmp_x_hat_tpdt.size(); ++t) {
                 x_hat_tpdt(t, 0) = tmp_x_hat_tpdt(t, 0);
             }
             // Add new landmark estimate
-            Eigen::Matrix<double, 2, 1> h_x_hat_0 = H_L_new * (Eigen::Matrix<double, 2, 1>::Zero() - G_p_R);
+            Matrix<double, 2, 1> h_x_hat_0 = H_L_new * (Matrix<double, 2, 1>::Zero() - G_p_R);
             x_hat_tpdt.block<2, 1>(tmp_x_hat_tpdt.size(), 0) = H_L_new.inverse() * (z - h_x_hat_0);
 
             // Covariance
             // Copy previous state
-            Eigen::MatrixXd tmp_Sigma_x_tpdt = Sigma_x_tpdt;
-            Sigma_x_tpdt = Eigen::MatrixXd::Zero(Sigma_x_tpdt.rows() + 2, Sigma_x_tpdt.cols() + 2);
+            MatrixXd tmp_Sigma_x_tpdt = Sigma_x_tpdt;
+            Sigma_x_tpdt = MatrixXd::Zero(Sigma_x_tpdt.rows() + 2, Sigma_x_tpdt.cols() + 2);
             for (int t = 0; t < tmp_Sigma_x_tpdt.rows(); ++t) {
                 for (int s = 0; s < tmp_Sigma_x_tpdt.cols(); ++s) {
                     Sigma_x_tpdt(t, s) = tmp_Sigma_x_tpdt(t, s);
                 }
             }
             // Augmentation
-            Eigen::Matrix<double, 2, 3> H_R;
+            Matrix<double, 2, 3> H_R;
             H_R << -cos(theta_t), -sin(theta_t), -(0 - x_R_t) * sin(theta_t) + (0 - y_R_t) * cos(theta_t),
                     sin(theta_t), -cos(theta_t), -(0 - x_R_t) * cos(theta_t) - (0 - y_R_t) * sin(theta_t);
-            Eigen::MatrixXd H_L_new_inv = H_L_new.inverse();
+            MatrixXd H_L_new_inv = H_L_new.inverse();
             // Top right block
             Sigma_x_tpdt.block<3, 2>(0, tmp_Sigma_x_tpdt.cols()) =
                     -tmp_Sigma_x_tpdt.block<3, 3>(0, 0) * H_R.transpose() * H_L_new_inv.transpose();
@@ -281,7 +277,7 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
                     = -H_L_new_inv
                       * (
                               H_R * tmp_Sigma_x_tpdt.block<3, 3>(0, 0) * H_R.transpose()
-                              + M * Sigma_m * M.transpose()
+                              + Sigma_m
                       )
                       * H_L_new_inv.transpose();
             // Bottom row
