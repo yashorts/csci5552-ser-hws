@@ -205,7 +205,6 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
             Matrix<double, 2, 1> h_x_hat_0 = H_L_new * (G_p_L - G_p_R);
 
             double distance = (z - h_x_hat_0).transpose() * S.inverse() * (z - h_x_hat_0);
-            cout << distance << " ";
 
             // Track the most likely landmark
             if (distance < min_distance) {
@@ -215,7 +214,6 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
                 best_S = S;
             }
         }
-        cout << endl;
 
         // If looks like a landmark then do a regular update
         if (min_distance <= KNOWN_LANDMARK_THRESHOLD) {
@@ -274,7 +272,7 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
                     -H_L_new_inv * H_R * tmp_Sigma_x_tpdt.block<3, 3>(0, 0);
             // Bottom right block
             Sigma_x_tpdt.block<2, 2>(tmp_Sigma_x_tpdt.rows(), tmp_Sigma_x_tpdt.cols())
-                    = -H_L_new_inv
+                    = H_L_new_inv
                       * (
                               H_R * tmp_Sigma_x_tpdt.block<3, 3>(0, 0) * H_R.transpose()
                               + Sigma_m
