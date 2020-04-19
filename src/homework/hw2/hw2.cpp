@@ -160,15 +160,13 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
     x_hat_tpdt = x_hat_t;
     Sigma_x_tpdt = Sigma_x_t;
 
-    double KNOWN_LANDMARK_THRESHOLD = 10;
-
     for (size_t i = 0; i < zs.size(); ++i) {
         // For each measurement
         VectorXd z = zs[i];
         MatrixXd Sigma_m = Sigma_ms[i];
 
         // Best match quantities
-        double min_distance = KNOWN_LANDMARK_THRESHOLD + 1;
+        double min_distance = std::numeric_limits<double>::infinity();
         MatrixXd best_H;
         Matrix<double, 2, 1> best_h_x_hat_0;
         Matrix<double, 2, 2> best_S;
@@ -216,7 +214,7 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
         }
 
         // If looks like a landmark then do a regular update
-        if (min_distance <= KNOWN_LANDMARK_THRESHOLD) {
+        if (min_distance <= 13) {
             MatrixXd K = Sigma_x_tpdt * best_H.transpose() * best_S.inverse();
             MatrixXd I = MatrixXd::Identity(x_hat_tpdt.size(), x_hat_tpdt.size());
 
@@ -228,7 +226,7 @@ void EKFSLAMRelPosUpdate(Eigen::VectorXd x_hat_t,
         }
 
         // If looks like no landmark seen until now augment SLAM state with the landmark information
-        if (min_distance > KNOWN_LANDMARK_THRESHOLD) {
+        if (min_distance > 13.5) {
             double x_R_t = x_hat_tpdt(0, 0);
             double y_R_t = x_hat_tpdt(1, 0);
             double theta_t = x_hat_tpdt(2, 0);
